@@ -205,7 +205,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text('Me interesa',
+                    child: const Text('Me interesa',
                         style: TextStyle(color: Colors.white)),
                   ),
                 ],

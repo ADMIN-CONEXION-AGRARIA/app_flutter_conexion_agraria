@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'property_card.dart';
@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        MaterialPageRoute(builder: (context) =>  const ProfileScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex =
