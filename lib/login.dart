@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'home.dart'; 
+import 'home.dart';
 import 'register.dart'; // Asegúrate de que la ruta sea correcta a RegisterScreen
 import 'forgot_password.dart'; // Asegúrate de que la ruta sea correcta a ForgotPasswordScreen
 
@@ -59,31 +59,31 @@ class _LoginScreenState extends State<LoginScreen> {
             children: <Widget>[
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Correo electrónico',
                   border: OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16.0),
               TextField(
                 controller: _passwordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Contraseña',
                   border: OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
                 ),
                 obscureText: true,
               ),
               const SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: _signIn,
-                child: const Text('Iniciar Sesión'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 93, 153, 187),
                   minimumSize: const Size(double.infinity, 50),
                 ),
+                child: const Text('Iniciar Sesión'),
               ),
               if (_errorMessage != null)
                 Padding(
@@ -97,7 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const RegisterScreen()),
                   );
                 },
                 child: const Text('¿No tienes una cuenta? Regístrate'),
@@ -106,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen()),
                   );
                 },
                 child: const Text('Olvidé mi contraseña'),

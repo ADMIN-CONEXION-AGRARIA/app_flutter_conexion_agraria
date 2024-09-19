@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'property_card.dart';
@@ -17,30 +17,41 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> properties = [];
   bool isLoading = true;
   bool isError = false;
-  int _selectedIndex = 0;
+  bool isLoadingMore = false; // Indica si estamos cargando más propiedades
+  int currentPage = 0; // Página actual para paginación
+  int _selectedIndex = 0; // Se debe definir el índice de selección
+  final ScrollController _scrollController =
+      ScrollController(); // Controlador para detectar final del scroll
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    fetchData(); // Cargar propiedades inicialmente
+    _scrollController.addListener(() {
+      // Detectar si el usuario llegó al final del scroll
+      if (_scrollController.position.pixels ==
+              _scrollController.position.maxScrollExtent &&
+          !isLoadingMore) {
+        loadMoreData(); // Cargar más propiedades si estamos al final
+      }
+    });
   }
 
+  // Método para cargar las propiedades iniciales
   Future<void> fetchData() async {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData'),
+            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
         headers: {
           'x-secret-key': 'supersecreta123', // Agrega tu clave secreta aquí
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         setState(() {
-          properties = json.decode(response.body);
+          properties =
+              json.decode(response.body); // Agregar las propiedades cargadas
           isLoading = false;
         });
       } else {
@@ -58,6 +69,42 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Método para cargar más propiedades cuando se llega al final del scroll
+  Future<void> loadMoreData() async {
+    setState(() {
+      isLoadingMore = true;
+      currentPage++; // Aumentar la página para cargar la siguiente
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
+        headers: {
+          'x-secret-key': 'supersecreta123',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          properties.addAll(
+              json.decode(response.body)); // Agregar las nuevas propiedades
+          isLoadingMore = false;
+        });
+      } else {
+        setState(() {
+          isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingMore = false;
+      });
+      print('Error loading more data: $e');
+    }
+  }
+
+  // Método para manejar la navegación del BottomNavigationBar
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -71,8 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ).then((_) {
         setState(() {
-          _selectedIndex =
-              0; // Volver a seleccionar "Explorar" después de cerrar el modal
+          _selectedIndex = 0; // Volver a seleccionar "Explorar"
         });
       });
     } else if (index == 1) {
@@ -81,18 +127,16 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (context) => const MapScreen()),
       ).then((_) {
         setState(() {
-          _selectedIndex =
-              0; // Volver a "Explorar" después de cerrar la pantalla de Mapa
+          _selectedIndex = 0; // Volver a "Explorar" después de cerrar el Mapa
         });
       });
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) =>  const ProfileScreen()),
+        MaterialPageRoute(builder: (context) => const ProfileScreen()),
       ).then((_) {
         setState(() {
-          _selectedIndex =
-              0; // Volver a "Explorar" después de cerrar la pantalla de Perfil
+          _selectedIndex = 0; // Volver a "Explorar" después de cerrar el Perfil
         });
       });
     }
@@ -111,11 +155,23 @@ class _HomeScreenState extends State<HomeScreen> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : isError
-                ? const Center(child: Text('Failed to load data.'))
+                ? const Center(child: Text('Error al cargar los datos.'))
                 : ListView.builder(
-                    itemCount: properties.length,
+                    controller:
+                        _scrollController, // Asignar el ScrollController
+                    itemCount: properties.length +
+                        (isLoadingMore
+                            ? 1
+                            : 0), // Agregar 1 si estamos cargando más
                     itemBuilder: (context, index) {
-                      return PropertyCard(property: properties[index]);
+                      if (index == properties.length) {
+                        return const Center(
+                            child:
+                                CircularProgressIndicator()); // Indicador de carga para más propiedades
+                      }
+                      return PropertyCard(
+                          property:
+                              properties[index]); // Mostrar cada propiedad
                     },
                   ),
       ),
@@ -127,21 +183,25 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
             icon: Icon(Icons.travel_explore),
             label: 'Explorar',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.location_on_outlined),
             label: 'Mapa',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.chat_outlined),
             label: 'Contáctanos',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_outlined),
+            icon: Image.asset(
+              'lib/assets/icono_campecino2.webp', // Ruta correcta de la imagen
+              width: 28,
+              height: 28,
+            ),
             label: 'Perfil',
           ),
         ],

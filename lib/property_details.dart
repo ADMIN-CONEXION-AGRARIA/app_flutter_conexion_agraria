@@ -65,10 +65,13 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                   // Indicador de la página actual
                   Positioned(
                     bottom: 10,
-                    right: 10,
-                    child: CirclePageIndicator(
-                      itemCount: imageUrls.length,
-                      currentPageNotifier: _currentPageNotifier,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: CirclePageIndicator(
+                        itemCount: imageUrls.length,
+                        currentPageNotifier: _currentPageNotifier,
+                      ),
                     ),
                   ),
                   // Icono de flecha para regresar

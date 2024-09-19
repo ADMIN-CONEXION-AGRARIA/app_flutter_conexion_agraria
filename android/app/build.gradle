@@ -1,7 +1,7 @@
 // Archivo android/app/build.gradle
 
 buildscript {
-    ext.kotlin_version = '1.8.0'  // Asegúrate de que esta versión coincida con la que estás usando
+    ext.kotlin_version = '1.9.0'  // Asegúrate de que esta versión coincida con la que estás usando
     repositories {
         google()
         mavenCentral()
@@ -14,9 +14,6 @@ buildscript {
 
 plugins {
     id "com.android.application"
-    // START: FlutterFire Configuration
-    id 'com.google.gms.google-services'
-    // END: FlutterFire Configuration
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -50,7 +47,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.conexion_agraria"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -68,9 +65,9 @@ android {
     signingConfigs {
         release {
             keyAlias 'my-key-alias'
-            keyPassword 'my-key-password'
-            storeFile file('path/to/my-release-key.jks')
-            storePassword 'my-store-password'
+            keyPassword '123456'
+            storeFile file('/Users/karencio/my-release-key.jks')
+            storePassword '123456'
         }
     }
 }
@@ -85,8 +82,11 @@ dependencies {
 }
 
 configurations.all {
-    resolutionStrategy {
-        force 'com.google.android.gms:play-services-location:21.0.0'
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'org.jetbrains.kotlin') {
+            details.useVersion '1.9.0'
+        }
     }
 }
+
 

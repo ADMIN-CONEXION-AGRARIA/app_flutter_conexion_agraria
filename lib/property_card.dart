@@ -16,8 +16,13 @@ class _PropertyCardState extends State<PropertyCard> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls =
-        List<String>.from(widget.property['imagenes']);
+    // Verifica que 'imagenes' no sea null y maneja la lista adecuadamente
+    final List<String> imageUrls = widget.property['imagenes'] != null
+        ? List<String>.from(widget.property['imagenes']
+            .map((url) => url ?? 'lib/assets/default_image.png'))
+        : [
+            'lib/assets/default_image.png'
+          ]; // Proporciona una lista con una imagen por defecto si es null
 
     return GestureDetector(
       onTap: () {
@@ -67,6 +72,12 @@ class _PropertyCardState extends State<PropertyCard> {
                               ),
                             );
                           },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'lib/assets/default_image.png', // Imagen por defecto si falla la carga
+                              fit: BoxFit.cover,
+                            );
+                          },
                         ),
                       );
                     },
@@ -89,8 +100,10 @@ class _PropertyCardState extends State<PropertyCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Verifica que 'nombre' no sea null
                   Text(
-                    widget.property['nombre'],
+                    widget.property['nombre'] ??
+                        'Sin nombre', // Valor por defecto si es null
                     style: const TextStyle(
                         fontSize: 22, fontWeight: FontWeight.bold),
                   ),
@@ -98,12 +111,14 @@ class _PropertyCardState extends State<PropertyCard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Verifica que 'departamento' y 'municipio' no sean null
                       Text(
-                        '${widget.property['departamento'].join(', ')}, ${widget.property['municipio']}',
+                        '${(widget.property['departamento']?.join(', ') ?? 'Sin departamento')}, ${widget.property['municipio'] ?? 'Sin municipio'}',
                         style: const TextStyle(fontSize: 12), // Tamaño reducido
                       ),
+                      // Verifica que 'precio_arriendo' no sea null
                       Text(
-                        '${widget.property['precio_arriendo']}', // Muestra el precio de arriendo
+                        '${widget.property['precio_arriendo'] ?? 'Sin precio'}', // Muestra el precio de arriendo o un valor por defecto
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
