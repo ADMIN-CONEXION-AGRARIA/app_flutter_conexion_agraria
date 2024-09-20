@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; 
+import 'firebase_options.dart'; // Asegúrate de tener este
 import 'home.dart';
 import 'login.dart';
 import 'register.dart';
@@ -10,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions
-        .currentPlatform, 
+        .currentPlatform, // Este archivo es generado por Firebase CLI.
   );
 
   runApp(const MyApp());

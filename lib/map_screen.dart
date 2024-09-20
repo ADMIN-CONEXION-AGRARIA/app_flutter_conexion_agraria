@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // Para Google Maps
+import 'package:location/location.dart'; // Para manejar la ubicación del usuario
 import 'dart:convert'; // Para decodificar JSON
 import 'package:http/http.dart' as http; // Para realizar solicitudes HTTP
-import 'package:permission_handler/permission_handler.dart' as perm_handler;
-import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart'
+    as perm_handler; // Para manejar permisos
+import 'package:page_view_indicators/circle_page_indicator.dart'; // Para los indicadores de página en el slider de imágenes
+import 'contact_form_modal.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -32,7 +34,8 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _fetchProperties(LatLngBounds bounds) async {
     try {
       final response = await http.get(
-        Uri.parse('https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
+        Uri.parse(
+            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
         headers: {
           'x-secret-key': 'supersecreta123',
         },
@@ -41,42 +44,42 @@ class _MapScreenState extends State<MapScreen> {
       if (response.statusCode == 200) {
         List<dynamic> propertiesData = json.decode(response.body);
 
-        if (propertiesData.isEmpty) {
-          _showSnackBar('No se encontraron predios en esta área.');
-          return;
+        if (propertiesData.isNotEmpty) {
+          setState(() {
+            _properties.clear();
+            for (var property in propertiesData) {
+              _properties.add({
+                "id": property['id'],
+                "name": property['nombre'],
+                "lat": property['latitud'],
+                "lng": property['longitud'],
+                "description": property['descripcion'],
+                "price": property['precio_arriendo'],
+                "measure": property['medida'],
+                "address": property['direccion'],
+                "image": property[
+                    'imagenes'], // Asegúrate de incluir la URL de la imagen
+                "climate": property[
+                    'clima'], // Añade el dato del clima si está disponible
+                "created_at": property['fecha_creacion'], // Fecha de creación
+              });
+            }
+          });
+
+          _addPropertyMarkers(bounds);
         }
-
-        setState(() {
-          _properties.clear();
-          for (var property in propertiesData) {
-            _properties.add({
-              "id": property['id'],
-              "name": property['nombre'],
-              "lat": property['latitud'],
-              "lng": property['longitud'],
-              "description": property['descripcion'],
-              "price": property['precio_arriendo'],
-              "measure": property['medida'],
-              "address": property['direccion'],
-              "images": property['imagenes'] ?? [],
-            });
-          }
-        });
-
-        _addPropertyMarkers(bounds);
-      } else {
-        _showSnackBar('Error al obtener los predios: ${response.statusCode}');
       }
     } catch (e) {
-      _showSnackBar('Error al obtener los predios: $e');
+      // Aquí eliminamos el manejo de errores
     }
   }
 
   void _addPropertyMarkers(LatLngBounds bounds) {
-    _markers.clear();
+    _markers.clear(); // Limpia los marcadores anteriores
     for (var property in _properties) {
       LatLng propertyLocation = LatLng(property['lat'], property['lng']);
       if (bounds.contains(propertyLocation)) {
+        // Solo muestra los predios dentro del área visible del mapa
         _markers.add(
           Marker(
             markerId: MarkerId(property['id']),
@@ -84,16 +87,7 @@ class _MapScreenState extends State<MapScreen> {
             infoWindow: InfoWindow(
               title: property['name'],
               onTap: () {
-                print('Marcador de ${property['name']} seleccionado');
-                List<String> propertyImages = property['images'] ?? [];
-                _onMarkerTapped(
-                  property['name'],
-                  property['description'],
-                  property['price'],
-                  property['measure'],
-                  property['address'],
-                  propertyImages,
-                );
+                _onMarkerTapped(property); // Pasas el objeto completo
               },
             ),
           ),
@@ -104,124 +98,253 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getUserLocation() async {
-    perm_handler.PermissionStatus permission = await perm_handler.Permission.locationWhenInUse.status;
+    perm_handler.PermissionStatus permission =
+        await perm_handler.Permission.locationWhenInUse.status;
 
     if (!permission.isGranted) {
       permission = await perm_handler.Permission.locationWhenInUse.request();
       if (!permission.isGranted) {
-        _showSnackBar('El permiso de ubicación ha sido denegado.');
         return;
       }
     }
 
-    LocationData locationData;
-    try {
-      locationData = await _location.getLocation();
-      LatLng userLocation = LatLng(locationData.latitude!, locationData.longitude!);
+    LocationData locationData = await _location.getLocation();
+    LatLng userLocation =
+        LatLng(locationData.latitude!, locationData.longitude!);
 
-      setState(() {
-        _initialPosition = userLocation;
-        _isLoading = false;
-      });
+    setState(() {
+      _initialPosition = userLocation;
+      _isLoading = false;
+    });
 
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('userLocation'),
-          position: _initialPosition,
-          infoWindow: const InfoWindow(title: 'Tu ubicación'),
-        ),
-      );
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('userLocation'),
+        position: _initialPosition,
+        infoWindow: const InfoWindow(title: 'Tu ubicación'),
+      ),
+    );
 
-      _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(_initialPosition, 10),
-      );
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(_initialPosition, 10),
+    );
 
+    // Aquí verificamos que _mapBounds no sea null antes de llamar a _fetchProperties
+    if (_mapBounds != null) {
       _fetchProperties(_mapBounds!);
-    } catch (e) {
-      if (e is PlatformException) {
-        _showSnackBar('Error obteniendo la ubicación: ${e.code}, ${e.message}');
-      } else {
-        _showSnackBar('Error obteniendo la ubicación: $e');
-      }
     }
   }
 
-void _onMarkerTapped(String name, String description, String price, String measure, String address, List<String> images) {
+  // Función que maneja el clic en un marcador
+void _onMarkerTapped(dynamic property) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    barrierColor: Colors.black.withOpacity(0.5),
+    backgroundColor: Colors.transparent,
     builder: (BuildContext context) {
-      return FractionallySizedBox(
-        heightFactor: 0.6,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Text('Descripción: $description'),
-                const SizedBox(height: 10),
-                Text('Precio: $price'),
-                const SizedBox(height: 10),
-                Text('Medida: $measure'),
-                const SizedBox(height: 10),
-                Text('Dirección: $address'),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 200,
-                  child: images.isNotEmpty
-                      ? PageView.builder(
-                          itemCount: images.length,
-                          itemBuilder: (context, index) {
-                            return Image.network(
-                              images[index],
-                              fit: BoxFit.cover,
-                            );
-                          },
-                        )
-                      : const Center(child: Text('No hay imágenes disponibles')),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PropertyDetailsScreen(
-                          name: name,
-                          price: price,
-                          measure: measure,
-                          images: images,
+      final List<String> imageUrls = property['image'] != null
+          ? List<String>.from(property['image']
+              .map((url) => url ?? 'lib/assets/default_image.png'))
+          : ['lib/assets/default_image.png'];
+
+      final _currentPageNotifier = ValueNotifier<int>(0);
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.37, end: 0.7),
+            duration: const Duration(milliseconds: 800),
+            builder: (context, size, child) {
+              return DraggableScrollableSheet(
+                initialChildSize: 0.37, // Se ajustó a 0.37 como tamaño inicial
+                minChildSize: 0.37,     // Tamaño mínimo del modal ahora es 0.37
+                maxChildSize: 0.7,      // Tamaño máximo del modal es 0.7
+                builder: (context, scrollController) {
+                  return AnimatedOpacity(
+                    opacity: size == 0.7 ? 1.0 : 0.9,
+                    duration: const Duration(milliseconds: 700),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(25.0),
                         ),
                       ),
-                    );
-                  },
-                  child: const Text('Ver más detalles'),
-                ),
-              ],
-            ),
-          ),
-        ),
+                      child: Stack(
+                        children: [
+                          ListView(
+                            controller: scrollController,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(25.0),
+                                ),
+                                child: SizedBox(
+                                  height: size == 0.37 ? 150 : 300,  // Se redujo la altura a 200
+                                  width: double.infinity,
+                                  child: PageView.builder(
+                                    itemCount: imageUrls.length,
+                                    onPageChanged: (index) {
+                                      _currentPageNotifier.value = index;
+                                    },
+                                    itemBuilder: (context, index) {
+                                      return Image.network(
+                                        imageUrls[index],
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (BuildContext context,
+                                            Widget child,
+                                            ImageChunkEvent? loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      (loadingProgress
+                                                              .expectedTotalBytes ??
+                                                          1)
+                                                  : null,
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'lib/assets/default_image.png',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Text(
+                                  property['name'],
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      property['address'],
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${property['measure']}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${property['climate']}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (size == 0.7)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                                  child: Text(
+                                    'Descripción: ${property['description']}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              const SizedBox(height: 30), // Espacio para el precio fijo
+                            ],
+                          ),
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 20.0),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                              ), // Se eliminó la sombra aquí
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '\$${property['price']} / mes',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if (property['id'] != null) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return ContactFormModal(
+                                              propertyId: property['id'],
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        print('Error: ID del predio es null');
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green.shade600,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text('Me interesa', style: TextStyle(color: Colors.white)),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
       );
     },
   );
 }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,64 +369,25 @@ void _onMarkerTapped(String name, String description, String price, String measu
               ),
               onMapCreated: (GoogleMapController controller) {
                 _mapController = controller;
+
+                // Verificamos la región visible cuando el mapa está listo
+                _mapController?.getVisibleRegion().then((LatLngBounds bounds) {
+                  _mapBounds = bounds;
+                  _fetchProperties(bounds);
+                });
               },
               onCameraIdle: () async {
-                LatLngBounds bounds = await _mapController!.getVisibleRegion();
-                _mapBounds = bounds;
-                _fetchProperties(bounds);
+                LatLngBounds newBounds =
+                    await _mapController!.getVisibleRegion();
+                if (_mapBounds != newBounds) {
+                  _mapBounds = newBounds;
+                  _fetchProperties(newBounds);
+                }
               },
               markers: _markers,
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
             ),
-    );
-  }
-}
-
-class PropertyDetailsScreen extends StatelessWidget {
-  final String name;
-  final String price;
-  final String measure;
-  final List<String> images;
-
-  const PropertyDetailsScreen({
-    Key? key,
-    required this.name,
-    required this.price,
-    required this.measure,
-    required this.images,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nombre: $name'),
-            const SizedBox(height: 10),
-            Text('Precio: $price'),
-            const SizedBox(height: 10),
-            Text('Medida: $measure'),
-            const SizedBox(height: 20),
-            Expanded(
-              child: images.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: images.length,
-                      itemBuilder: (context, index) {
-                        return Image.network(images[index]);
-                      },
-                    )
-                  : const Text('No hay imágenes disponibles'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

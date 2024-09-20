@@ -22,8 +22,6 @@ dependencies:
   firebase_auth: ^5.2.1
   cloud_firestore: ^5.4.1
   firebase_database: ^11.1.2
-  firebase_storage: ^12.3.1
-  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -35,7 +33,7 @@ flutter_icons:
   android: true
   ios: true
   image_path: "lib/assets/icono2.png"  # Define la imagen que usará tanto para Android como para iOS
-  adaptive_icon_background: "#000000"  # Fondo para el ícono adaptativo (solo en Android)
+  adaptive_icon_background: "#ffffff"  # Fondo para el ícono adaptativo (solo en Android)
   adaptive_icon_foreground: "lib/assets/icono2.png"  # Imagen del ícono adaptativo (solo en Android)
 
 flutter:

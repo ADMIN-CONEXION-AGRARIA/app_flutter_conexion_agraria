@@ -16,11 +16,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _docNumberController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   String? _role; // Para almacenar el rol seleccionado
-  String? _errorMessage;
 
-  final DatabaseReference _database = FirebaseDatabase.instance.ref().child('Api/Users');
+  final DatabaseReference _database =
+      FirebaseDatabase.instance.ref().child('Api/Users');
 
   Future<void> _register() async {
     final email = _emailController.text.trim();
@@ -31,28 +32,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final phone = _phoneController.text.trim();
 
     if (!_validateEmail(email)) {
-      setState(() {
-        _errorMessage = 'Por favor, introduce un correo válido.';
-      });
+      _showSnackbar('Por favor, introduce un correo válido.');
       return;
     }
 
     if (password != confirmPassword) {
-      setState(() {
-        _errorMessage = 'Las contraseñas no coinciden.';
-      });
+      _showSnackbar('Las contraseñas no coinciden.');
       return;
     }
 
     if (_role == null) {
-      setState(() {
-        _errorMessage = 'Por favor, selecciona un rol.';
-      });
+      _showSnackbar('Por favor, selecciona un rol.');
       return;
     }
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -70,9 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } on FirebaseAuthException {
-      setState(() {
-        _errorMessage = 'Error al crear la cuenta.';
-      });
+      _showSnackbar('Error al crear la cuenta.');
     }
   }
 
@@ -83,12 +77,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return emailRegExp.hasMatch(email);
   }
 
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red, // Fondo rojo para el Snackbar
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registro'),
-        backgroundColor: Colors.lightBlue,
+        title: Image.asset('lib/assets/logo.png', height: 30),
+        centerTitle: true,
+        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -96,47 +101,111 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              const Center(
+                child: Text(
+                  'Registro de Usuario',
+                  style: TextStyle(
+                    fontSize: 22,
+                    color: Colors.grey, // Color gris claro para el título
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20), // Espacio extra debajo del texto
               TextField(
                 controller: _emailController,
-                decoration: const InputDecoration(
+                style: const TextStyle(
+                    color: Colors.black), // Texto negro al escribir
+                decoration: InputDecoration(
                   labelText: 'Correo Electrónico',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(
+                      color: Colors.grey), // Color gris del label
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.grey), // Solo borde inferior gris
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(
+                        color:
+                            Colors.green), // Borde inferior verde al enfocarse
+                  ),
+                  prefixIcon: const Icon(Icons.email,
+                      color: Colors.grey), // Ícono de correo
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
                   labelText: 'Nombre Completo',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  prefixIcon: const Icon(Icons.person,
+                      color: Colors.grey), // Ícono de nombre
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _docNumberController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
                   labelText: 'Número de Documento',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  prefixIcon: const Icon(Icons.credit_card,
+                      color: Colors.grey), // Ícono de documento
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _phoneController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
                   labelText: 'Teléfono',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  prefixIcon: const Icon(Icons.phone,
+                      color: Colors.grey), // Ícono de teléfono
                 ),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: _role,
-                decoration: const InputDecoration(
+                style: const TextStyle(
+                    color: Colors.black), // Texto negro al seleccionar
+                decoration: InputDecoration(
                   labelText: 'Rol',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  prefixIcon: const Icon(Icons.group,
+                      color: Colors.grey), // Ícono de rol
                 ),
                 items: const [
-                  DropdownMenuItem(value: 'Rol_propietario', child: Text('Propietario')),
-                  DropdownMenuItem(value: 'Rol_cliente', child: Text('Cliente')),
+                  DropdownMenuItem(
+                      value: 'Rol_propietario', child: Text('Propietario')),
+                  DropdownMenuItem(
+                      value: 'Rol_cliente', child: Text('Cliente')),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -147,18 +216,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
                   labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  prefixIcon: const Icon(Icons.lock,
+                      color: Colors.grey), // Ícono de contraseña
                 ),
                 obscureText: true,
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _confirmPasswordController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
                   labelText: 'Confirmar Contraseña',
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  prefixIcon: const Icon(Icons.lock,
+                      color: Colors.grey), // Ícono de confirmación
                 ),
                 obscureText: true,
               ),
@@ -166,19 +253,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ElevatedButton(
                 onPressed: _register,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlue,
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: const Text('Registrar'),
-              ),
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+                  backgroundColor:
+                      Colors.green.shade600, // Fondo verde por defecto
+                  minimumSize:
+                      const Size(double.infinity, 50), // Tamaño del botón
+                  foregroundColor: Colors.white, // Texto blanco
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(8.0), // Esquinas redondeadas
+                  ),
+                  side: BorderSide(
+                    color: Colors.green.shade600, // Borde verde por defecto
+                    width: 2.0,
+                  ),
+                ).copyWith(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.pressed)) {
+                        return const Color(
+                            0xFF212121); // Fondo negro al presionar
+                      }
+                      return Colors.green.shade600; // Fondo verde por defecto
+                    },
+                  ),
+                  side: MaterialStateProperty.resolveWith<BorderSide?>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.pressed)) {
+                        return const BorderSide(
+                          color: Color(0xFF212121), // Borde negro al presionar
+                          width: 2.0,
+                        );
+                      }
+                      return BorderSide(
+                        color: Colors.green.shade600, // Borde verde por defecto
+                        width: 2.0,
+                      );
+                    },
                   ),
                 ),
+                child: const Text(
+                  'Registrar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
         ),

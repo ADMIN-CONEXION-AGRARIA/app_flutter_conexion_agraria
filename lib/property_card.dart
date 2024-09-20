@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:page_view_indicators/circle_page_indicator.dart';
-import 'property_details.dart'; // Importa la nueva pantalla
+import 'package:conexion_agraria/property_details.dart';
 
 class PropertyCard extends StatefulWidget {
   final dynamic property;

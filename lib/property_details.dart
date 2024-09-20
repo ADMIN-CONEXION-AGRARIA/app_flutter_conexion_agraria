@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth
 import 'package:page_view_indicators/circle_page_indicator.dart';
 import 'contact_form_modal.dart';
+import 'login.dart'; // Importar la pantalla de login
 
 class PropertyDetails extends StatefulWidget {
   final dynamic property;
@@ -16,8 +18,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls =
-        List<String>.from(widget.property['imagenes']);
+    final List<String> imageUrls = List<String>.from(widget.property['imagenes']);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,19 +46,6 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                         return Image.network(
                           imageUrls[index],
                           fit: BoxFit.cover,
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes !=
-                                        null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
                         );
                       },
                     ),
@@ -105,8 +93,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                   children: [
                     Text(
                       widget.property['nombre'],
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -114,8 +101,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                         Expanded(
                           child: Text(
                             '${widget.property['direccion']}, ${widget.property['municipio']}, ${widget.property['departamento'].join(', ')}',
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey.shade600),
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ),
                       ],
@@ -128,8 +114,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.brightness_6_outlined,
-                                color: Colors.grey),
+                            const Icon(Icons.brightness_6_outlined, color: Colors.grey),
                             const SizedBox(width: 8),
                             Text('Clima: ${widget.property['clima']}'),
                           ],
@@ -165,8 +150,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                   ),
                 ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -175,31 +159,53 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                     children: [
                       Text(
                         '\$${widget.property['precio_arriendo']} / mes',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Fecha de creación: ${widget.property['fecha_creacion']}',
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                       ),
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      if (widget.property['id'] != null) {
-                        showDialog(
+                    onPressed: () async {
+                      final User? user = FirebaseAuth.instance.currentUser;
+                      if (user == null) {
+                        // Usuario no ha iniciado sesión, mostrar alerta
+                        bool? result = await showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            return ContactFormModal(
-                              propertyId:
-                                  widget.property['id'] ?? 'ID no disponible',
+                            return AlertDialog(
+                              title: const Text('Inicia sesión o regístrate'),
+                              content: const Text('Debes iniciar sesión para continuar.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Continuar'),
+                                ),
+                              ],
                             );
                           },
                         );
+                        if (result == true) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
+                        }
                       } else {
-                        print('Error: ID del predio es null');
+                        // Usuario ha iniciado sesión, abrir formulario de contacto
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ContactFormModal(propertyId: widget.property['id']);
+                          },
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -208,8 +214,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Me interesa',
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text('Me interesa', style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
