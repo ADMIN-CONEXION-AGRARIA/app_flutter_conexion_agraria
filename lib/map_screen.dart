@@ -57,11 +57,17 @@ class _MapScreenState extends State<MapScreen> {
                 "price": property['precio_arriendo'],
                 "measure": property['medida'],
                 "address": property['direccion'],
-                "image": property[
-                    'imagenes'], // Asegúrate de incluir la URL de la imagen
-                "climate": property[
-                    'clima'], // Añade el dato del clima si está disponible
+                "image": property['imagenes'], // URL de la imagen
+                "climate": property['clima'], // Clima
                 "created_at": property['fecha_creacion'], // Fecha de creación
+                "soil_type": property['tipo_tierra'], // Tipo de tierra
+                "crop_type": property['tipo_cultivo'], // Cultivo
+                "livestock_type": property['tipo_ganaderia'], // Ganadería
+                "additional_details":
+                    property['detalles_adicionales'], // Detalles adicionales
+                "nearby_rivers": property['rios_cercanos'], // Ríos cercanos
+                "available_services":
+                    property['servicios_disponibles'], // Servicios
               });
             }
           });
@@ -136,215 +142,293 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // Función que maneja el clic en un marcador
-void _onMarkerTapped(dynamic property) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    barrierColor: Colors.black.withOpacity(0.5),
-    backgroundColor: Colors.transparent,
-    builder: (BuildContext context) {
-      final List<String> imageUrls = property['image'] != null
-          ? List<String>.from(property['image']
-              .map((url) => url ?? 'lib/assets/default_image.png'))
-          : ['lib/assets/default_image.png'];
+  void _onMarkerTapped(dynamic property) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        final List<String> imageUrls = property['image'] != null
+            ? List<String>.from(property['image']
+                .map((url) => url ?? 'lib/assets/default_image.png'))
+            : ['lib/assets/default_image.png'];
 
-      final _currentPageNotifier = ValueNotifier<int>(0);
+        final _currentPageNotifier = ValueNotifier<int>(0);
 
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.37, end: 0.7),
-            duration: const Duration(milliseconds: 800),
-            builder: (context, size, child) {
-              return DraggableScrollableSheet(
-                initialChildSize: 0.37, // Se ajustó a 0.37 como tamaño inicial
-                minChildSize: 0.37,     // Tamaño mínimo del modal ahora es 0.37
-                maxChildSize: 0.7,      // Tamaño máximo del modal es 0.7
-                builder: (context, scrollController) {
-                  return AnimatedOpacity(
-                    opacity: size == 0.7 ? 1.0 : 0.9,
-                    duration: const Duration(milliseconds: 700),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(25.0),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.37, end: 0.7),
+              duration: const Duration(milliseconds: 800),
+              builder: (context, size, child) {
+                return DraggableScrollableSheet(
+                  initialChildSize:
+                      0.37, // Se ajustó a 0.37 como tamaño inicial
+                  minChildSize: 0.37, // Tamaño mínimo del modal ahora es 0.37
+                  maxChildSize: 0.7, // Tamaño máximo del modal es 0.7
+                  builder: (context, scrollController) {
+                    return AnimatedOpacity(
+                      opacity: size == 0.7 ? 1.0 : 0.9,
+                      duration: const Duration(milliseconds: 700),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25.0),
+                          ),
                         ),
-                      ),
-                      child: Stack(
-                        children: [
-                          ListView(
-                            controller: scrollController,
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(25.0),
-                                ),
-                                child: SizedBox(
-                                  height: size == 0.37 ? 150 : 300,  // Se redujo la altura a 200
-                                  width: double.infinity,
-                                  child: PageView.builder(
-                                    itemCount: imageUrls.length,
-                                    onPageChanged: (index) {
-                                      _currentPageNotifier.value = index;
-                                    },
-                                    itemBuilder: (context, index) {
-                                      return Image.network(
-                                        imageUrls[index],
-                                        fit: BoxFit.cover,
-                                        loadingBuilder: (BuildContext context,
-                                            Widget child,
-                                            ImageChunkEvent? loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          }
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                              value: loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                          .cumulativeBytesLoaded /
-                                                      (loadingProgress
-                                                              .expectedTotalBytes ??
-                                                          1)
-                                                  : null,
-                                            ),
-                                          );
-                                        },
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Image.asset(
-                                            'lib/assets/default_image.png',
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
-                                      );
-                                    },
+                        child: Stack(
+                          children: [
+                            ListView(
+                              controller: scrollController,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(25.0),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Text(
-                                  property['name'],
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      property['address'],
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${property['measure']}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${property['climate']}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (size == 0.7)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-                                  child: Text(
-                                    'Descripción: ${property['description']}',
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              const SizedBox(height: 30), // Espacio para el precio fijo
-                            ],
-                          ),
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 20.0),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                              ), // Se eliminó la sombra aquí
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '\$${property['price']} / mes',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      if (property['id'] != null) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return ContactFormModal(
-                                              propertyId: property['id'],
+                                  child: SizedBox(
+                                    height: size == 0.37
+                                        ? 150
+                                        : 300, // Se redujo la altura a 200
+                                    width: double.infinity,
+                                    child: PageView.builder(
+                                      itemCount: imageUrls.length,
+                                      onPageChanged: (index) {
+                                        _currentPageNotifier.value = index;
+                                      },
+                                      itemBuilder: (context, index) {
+                                        return Image.network(
+                                          imageUrls[index],
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (BuildContext context,
+                                              Widget child,
+                                              ImageChunkEvent?
+                                                  loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        (loadingProgress
+                                                                .expectedTotalBytes ??
+                                                            1)
+                                                    : null,
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Image.asset(
+                                              'lib/assets/default_image.png',
+                                              fit: BoxFit.cover,
                                             );
                                           },
                                         );
-                                      } else {
-                                        print('Error: ID del predio es null');
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green.shade600,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                                      },
                                     ),
-                                    child: const Text('Me interesa', style: TextStyle(color: Colors.white)),
-                                  )
-                                ],
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Text(
+                                    property['name'],
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Column(
+                                    children: [
+                                      // Primera fila: dirección, clima y medidas
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              property['address'],
+                                              style: const TextStyle(
+                                                fontSize:
+                                                    11, // Fuente un poco más pequeña
+                                                color: Color(
+                                                    0xFF757575), // Gris más fuerte
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              '${property['climate']}',
+                                              style: const TextStyle(
+                                                fontSize:
+                                                    11, // Fuente un poco más pequeña
+                                                color: Color(
+                                                    0xFF757575), // Gris más fuerte
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              '${property['measure']}',
+                                              style: const TextStyle(
+                                                fontSize:
+                                                    11, // Fuente un poco más pequeña
+                                                color: Color(
+                                                    0xFF757575), // Gris más fuerte
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(
+                                          height:
+                                              6), // Espacio uniforme entre filas
+
+                                      // Segunda fila: tipo de tierra, tipo de cultivo y ganadería
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              'Tipo de Tierra: ${property['soil_type']}',
+                                              style: const TextStyle(
+                                                fontSize:
+                                                    11, // Fuente un poco más pequeña
+                                                color: Color(
+                                                    0xFF757575), // Gris más fuerte
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Tipo de Cultivo: ${property['crop_type'].join(', ')}',
+                                              style: const TextStyle(
+                                                fontSize:
+                                                    11, // Fuente un poco más pequeña
+                                                color: Color(
+                                                    0xFF757575), // Gris más fuerte
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Ganadería: ${property['livestock_type'].join(', ')}',
+                                              style: const TextStyle(
+                                                fontSize:
+                                                    11, // Fuente un poco más pequeña
+                                                color: Color(
+                                                    0xFF757575), // Gris más fuerte
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(
+                                          height:
+                                              8), // Espacio adicional antes del siguiente contenido
+                                    ],
+                                  ),
+                                ),
+                                if (size == 0.7)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 10),
+                                    child: Text(
+                                      '${property['description']}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                const SizedBox(
+                                    height: 30), // Espacio para el precio fijo
+                              ],
+                            ),
+                            Positioned(
+                              top: 10,
+                              right: 10,
+                              child: IconButton(
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
                               ),
                             ),
-                          ),
-                        ],
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 20.0),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                ), // Se eliminó la sombra aquí
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '\$${property['price']} / mes',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        if (property['id'] != null) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return ContactFormModal(
+                                                propertyId: property['id'],
+                                              );
+                                            },
+                                          );
+                                        } else {
+                                          print('Error: ID del predio es null');
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green.shade600,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: const Text('Me interesa',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-      );
-    },
-  );
-}
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
