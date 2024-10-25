@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:page_view_indicators/circle_page_indicator.dart'; // Para los indicadores de página en el slider de imágenes
 import 'package:firebase_auth/firebase_auth.dart';
 import 'contact_form_modal.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -140,6 +141,40 @@ class _MapScreenState extends State<MapScreen> {
     if (_mapBounds != null) {
       _fetchProperties(_mapBounds!);
     }
+  }
+
+  void showTopSnackBar(BuildContext context, String message) {
+    OverlayEntry overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50.0, // Puedes ajustar esta posición según el diseño
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            margin: const EdgeInsets.symmetric(horizontal: 20.0),
+            decoration: BoxDecoration(
+              color: Colors.black, // Color de fondo del mensaje
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white, fontSize: 16.0),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insertar el Overlay en la pantalla
+    Overlay.of(context)!.insert(overlayEntry);
+
+    // Remover el Overlay después de 2 segundos
+    Future.delayed(const Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
   }
 
   // Función que maneja el clic en un marcador
@@ -390,7 +425,6 @@ class _MapScreenState extends State<MapScreen> {
                                     ElevatedButton(
                                       onPressed: () {
                                         if (property['id'] != null) {
-                                          // Verificar si el usuario está autenticado
                                           final User? user =
                                               FirebaseAuth.instance.currentUser;
                                           if (user != null) {
@@ -399,18 +433,13 @@ class _MapScreenState extends State<MapScreen> {
                                               context: context,
                                               builder: (BuildContext context) {
                                                 return ContactFormModal(
-                                                  propertyId: property['id'],
-                                                );
+                                                    propertyId: property['id']);
                                               },
                                             );
                                           } else {
-                                            // El usuario no está autenticado, mostrar un mensaje
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      'Por favor, inicie sesión para contactar.')),
-                                            );
+                                            // Mostrar el mensaje en la parte superior usando Overlay
+                                            showTopSnackBar(context,
+                                                'Por favor, inicie sesión para contactar.');
                                           }
                                         } else {
                                           print('Error: ID del predio es null');
