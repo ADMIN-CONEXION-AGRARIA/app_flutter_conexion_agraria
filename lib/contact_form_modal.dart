@@ -30,21 +30,24 @@ class _ContactFormModalState extends State<ContactFormModal> {
   Future<void> _loadUserData() async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DatabaseReference userRef = FirebaseDatabase.instance
-          .ref('Api/Users/${user.uid}');
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref('Api/Users/${user.uid}');
       DataSnapshot snapshot = await userRef.get();
 
       if (snapshot.exists) {
-        Map<String, dynamic> userData = Map<String, dynamic>.from(snapshot.value as Map);
+        Map<String, dynamic> userData =
+            Map<String, dynamic>.from(snapshot.value as Map);
         setState(() {
           _name = userData['nombre'] ?? '';
           _email = user.email ?? '';
           _phone = userData['telefono'] ?? '';
-          _isLoading = false; // Se cargaron los datos, desactivar el estado de carga
+          _isLoading =
+              false; // Se cargaron los datos, desactivar el estado de carga
         });
       } else {
         setState(() {
-          _isLoading = false; // No se encontraron datos, pero ya no está cargando
+          _isLoading =
+              false; // No se encontraron datos, pero ya no está cargando
         });
       }
     } else {
@@ -64,11 +67,13 @@ class _ContactFormModalState extends State<ContactFormModal> {
         'email': _email,
         'phone': _phone,
         'message': _message,
+        'estado': 'sin_resolver', // Campo oculto con valor predeterminado
       };
 
       try {
         final response = await http.post(
-          Uri.parse('https://conexion-agraria-default-rtdb.firebaseio.com/Api/Contac.json'),
+          Uri.parse(
+              'https://conexion-agraria-default-rtdb.firebaseio.com/Api/Contac.json'),
           body: json.encode(formData),
         );
 
@@ -120,35 +125,40 @@ class _ContactFormModalState extends State<ContactFormModal> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         TextFormField(
-                          decoration: const InputDecoration(labelText: 'Nombre'),
+                          decoration:
+                              const InputDecoration(labelText: 'Nombre'),
                           initialValue: _name,
                           onSaved: (value) => _name = value ?? '',
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor ingrese su nombre';
                             }
-                            if (!RegExp(r'^[a-zA-Z]+ [a-zA-Z]').hasMatch(value)) {
-                              return 'Por favor ingrese un nombre y un apellido';
+                            // Permitir caracteres acentuados y espacio entre nombre y apellido
+                            if (!RegExp(r'^[a-zA-ZÀ-ÿ\s]+$').hasMatch(value)) {
+                              return 'Por favor ingrese un nombre válido (sin caracteres especiales no permitidos)';
                             }
                             return null;
                           },
                         ),
                         TextFormField(
-                          decoration: const InputDecoration(labelText: 'Correo electrónico'),
+                          decoration: const InputDecoration(
+                              labelText: 'Correo electrónico'),
                           initialValue: _email,
                           onSaved: (value) => _email = value ?? '',
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor ingrese su correo electrónico';
                             }
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                .hasMatch(value)) {
                               return 'Por favor ingrese un correo electrónico válido';
                             }
                             return null;
                           },
                         ),
                         TextFormField(
-                          decoration: const InputDecoration(labelText: 'Teléfono'),
+                          decoration:
+                              const InputDecoration(labelText: 'Teléfono'),
                           initialValue: _phone,
                           keyboardType: TextInputType.phone,
                           onSaved: (value) => _phone = value ?? '',
@@ -163,7 +173,8 @@ class _ContactFormModalState extends State<ContactFormModal> {
                           },
                         ),
                         TextFormField(
-                          decoration: const InputDecoration(labelText: 'Mensaje'),
+                          decoration:
+                              const InputDecoration(labelText: 'Mensaje'),
                           maxLines: 5,
                           onSaved: (value) => _message = value ?? '',
                           validator: (value) {

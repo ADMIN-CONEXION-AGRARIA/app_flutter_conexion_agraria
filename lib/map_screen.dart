@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http; // Para realizar solicitudes HTTP
 import 'package:permission_handler/permission_handler.dart'
     as perm_handler; // Para manejar permisos
 import 'package:page_view_indicators/circle_page_indicator.dart'; // Para los indicadores de página en el slider de imágenes
+import 'package:firebase_auth/firebase_auth.dart';
 import 'contact_form_modal.dart';
 
 class MapScreen extends StatefulWidget {
@@ -389,14 +390,28 @@ class _MapScreenState extends State<MapScreen> {
                                     ElevatedButton(
                                       onPressed: () {
                                         if (property['id'] != null) {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return ContactFormModal(
-                                                propertyId: property['id'],
-                                              );
-                                            },
-                                          );
+                                          // Verificar si el usuario está autenticado
+                                          final User? user =
+                                              FirebaseAuth.instance.currentUser;
+                                          if (user != null) {
+                                            // El usuario está autenticado, mostrar el formulario
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return ContactFormModal(
+                                                  propertyId: property['id'],
+                                                );
+                                              },
+                                            );
+                                          } else {
+                                            // El usuario no está autenticado, mostrar un mensaje
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                  content: Text(
+                                                      'Por favor, inicie sesión para contactar.')),
+                                            );
+                                          }
                                         } else {
                                           print('Error: ID del predio es null');
                                         }
@@ -411,7 +426,7 @@ class _MapScreenState extends State<MapScreen> {
                                       child: const Text('Me interesa',
                                           style:
                                               TextStyle(color: Colors.white)),
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),

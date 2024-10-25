@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:page_view_indicators/circle_page_indicator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'contact_form_modal.dart';
 
 class PropertyDetails extends StatefulWidget {
@@ -97,46 +98,35 @@ class _PropertyDetailsState extends State<PropertyDetails> {
               // Información de la propiedad
               // Información de la propiedad
               Padding(
-                padding:
-                    const EdgeInsets.all(8.0), // Reducir el padding general
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       widget.property['nombre'],
                       style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight:
-                              FontWeight.bold), // Reducir el tamaño del texto
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         Expanded(
                           child: Text(
-                            '${widget.property['direccion']}, ${widget.property['municipio']}, ${widget.property['departamento'].join(', ')}',
+                            '${widget.property['direccion']}, ${widget.property['municipio']}, ${(widget.property['departamento'] is List ? widget.property['departamento'] : []).join(', ')}',
                             style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey
-                                    .shade600), // Reducir el tamaño del texto
+                                fontSize: 10, color: Colors.grey.shade600),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(
-                        height: 8), // Reducir el espacio entre elementos
+                    const SizedBox(height: 8),
                     Text(
                       widget.property['descripcion'],
-                      style: const TextStyle(
-                          fontSize: 12), // Reducir el tamaño del texto
+                      style: const TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 8),
-
-                    // Añadir margen superior a las tres columnas
                     Container(
-                      margin: const EdgeInsets.only(
-                          top:
-                              12.0), // Ajustar el margen superior según sea necesario
+                      margin: const EdgeInsets.only(top: 12.0),
                       child: Row(
                         children: [
                           // Columna izquierda
@@ -146,15 +136,12 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.terrain,
-                                        color: Colors.grey,
-                                        size: 14), // Tipo de tierra
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
                                         'Tipo Tierra: ${widget.property['tipo_tierra']}',
-                                        style: const TextStyle(
-                                            fontSize:
-                                                10), // Reducir el tamaño del texto
+                                        style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
                                   ],
@@ -163,12 +150,11 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.agriculture_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Cultivo
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
-                                        'Cultivo: ${widget.property['tipo_cultivo'].join(', ')}',
+                                        'Cultivo: ${(widget.property['tipo_cultivo'] is List ? widget.property['tipo_cultivo'] : []).join(', ')}',
                                         style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
@@ -178,12 +164,11 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.pets_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Ganadería
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
-                                        'Ganadería: ${widget.property['tipo_ganaderia'].join(', ')}',
+                                        'Ganadería: ${(widget.property['tipo_ganaderia'] is List ? widget.property['tipo_ganaderia'] : []).join(', ')}',
                                         style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
@@ -193,14 +178,12 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.brightness_6_outlined,
-                                        color: Colors.grey, size: 14), // Clima
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
                                         'Clima: ${widget.property['clima']}',
-                                        style: const TextStyle(
-                                            fontSize:
-                                                10), // Reducir el tamaño del texto
+                                        style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
                                   ],
@@ -208,18 +191,15 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                              width: 8), // Reducir separación entre columnas
-
-                          // Columna central (detalles adicionales añadidos)
+                          const SizedBox(width: 8),
+                          // Columna central
                           Expanded(
                             child: Column(
                               children: [
                                 Row(
                                   children: [
                                     const Icon(Icons.crop_free,
-                                        color: Colors.grey,
-                                        size: 14), // Medidas
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
@@ -233,8 +213,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.location_on_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Distancia
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
@@ -248,8 +227,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.landscape_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Topografía
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
@@ -263,8 +241,7 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.map_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Zonificación
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
@@ -277,17 +254,15 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                              width: 8), // Reducir separación entre columnas
-
-                          // Columna derecha (detalles adicionales)
+                          const SizedBox(width: 8),
+                          // Columna derecha
                           Expanded(
                             child: Column(
                               children: [
                                 Row(
                                   children: [
                                     const Icon(Icons.info_outline,
-                                        color: Colors.grey, size: 14), // Acceso
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
@@ -301,12 +276,11 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.water_damage_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Ríos cercanos
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
-                                        'Ríos Cercanos: ${widget.property['rios_cercanos'].join(', ')}',
+                                        'Ríos Cercanos: ${(widget.property['rios_cercanos'] is List ? widget.property['rios_cercanos'] : []).join(', ')}',
                                         style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
@@ -316,12 +290,11 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                                 Row(
                                   children: [
                                     const Icon(Icons.local_offer_outlined,
-                                        color: Colors.grey,
-                                        size: 14), // Servicios
+                                        color: Colors.grey, size: 14),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
-                                        'Servicios: ${widget.property['servicios_disponibles'].join(', ')}',
+                                        'Servicios: ${(widget.property['servicios_disponibles'] is List ? widget.property['servicios_disponibles'] : []).join(', ')}',
                                         style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
@@ -379,15 +352,27 @@ class _PropertyDetailsState extends State<PropertyDetails> {
                   ElevatedButton(
                     onPressed: () {
                       if (widget.property['id'] != null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return ContactFormModal(
-                              propertyId:
-                                  widget.property['id'] ?? 'ID no disponible',
-                            );
-                          },
-                        );
+                        // Verificar si el usuario está autenticado
+                        final User? user = FirebaseAuth.instance.currentUser;
+                        if (user != null) {
+                          // El usuario está autenticado, mostrar el formulario
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return ContactFormModal(
+                                propertyId:
+                                    widget.property['id'] ?? 'ID no disponible',
+                              );
+                            },
+                          );
+                        } else {
+                          // El usuario no está autenticado, mostrar un mensaje
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Por favor, inicie sesión para contactar.')),
+                          );
+                        }
                       } else {
                         print('Error: ID del predio es null');
                       }
