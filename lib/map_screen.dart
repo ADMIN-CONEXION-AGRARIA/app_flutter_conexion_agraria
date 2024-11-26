@@ -35,11 +35,12 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchProperties(LatLngBounds bounds) async {
     try {
-      final response = await http.get(
+     final response = await http.get(
         Uri.parse(
-            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
+            'https://api-conexion-agraria-1.onrender.com/getCombinedData'),
         headers: {
-          'x-secret-key': 'supersecreta123',
+          'x-secret-key':
+              'supersecreta123', // Asegúrate de seguir usando tu clave secreta
         },
       );
 

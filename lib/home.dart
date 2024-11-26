@@ -42,9 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
+            'https://api-conexion-agraria-1.onrender.com/getCombinedData'),
         headers: {
-          'x-secret-key': 'supersecreta123', // Agrega tu clave secreta aquí
+          'x-secret-key':
+              'supersecreta123', // Asegúrate de seguir usando tu clave secreta
         },
       );
 
@@ -79,9 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://us-central1-conexion-agraria.cloudfunctions.net/getCombinedData?page=$currentPage&limit=6'),
+            'https://api-conexion-agraria-1.onrender.com/getCombinedData'),
         headers: {
-          'x-secret-key': 'supersecreta123',
+          'x-secret-key':
+              'supersecreta123', // Asegúrate de seguir usando tu clave secreta
         },
       );
 
